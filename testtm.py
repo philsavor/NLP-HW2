@@ -1,7 +1,7 @@
 #!/usr/bin/python -B
 
-import text_manager
-tm = text_manager.TextManager()
+import textmanager
+tm = textmanager.TextManager()
 tm.set_file("NLPCorpusTreebank2Parts.txt")
 print tm.get_next_word()
 print tm.get_next_word()
