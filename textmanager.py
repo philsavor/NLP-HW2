@@ -18,17 +18,7 @@ class TextManager :
         self.words = None 
 
     def reset(self):
-        self.file = None 
-        self.lines = None 
-        self.line_count = 0
-        self.word_count = 0 
-        self.max_line_count = 0 
-        self.max_word_count = 0 
-        #represent each line
-        self.line = None   
-        #It is a list containing each word from a certain line
-        self.words = None 
-        
+        self.__init__() 
     
     def set_file(self, file_name):
         """
