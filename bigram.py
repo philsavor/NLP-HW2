@@ -13,6 +13,7 @@ class BiGram:
         self.__scenarios = None
         self.__unicount = []
         self.__bicount = []
+        self.__vocabulary = []
         #bigram probability
         self.__biprob_no_smoothing = []
         self.__biprob_add_one = []
@@ -62,14 +63,20 @@ class BiGram:
         bigram_i = None
         while 1:
             word = self.__tm.get_next_word()
+            #end mark
             if word == None:
                 break
+            #set vocabulary
+            if word not in self.__vocabulary:
+                self.__vocabulary.append(word)
+            #set bicount
             if bigram_i != None:
                 for j in range(words_count):
                     if word == self.__words_no_repeat[j]:
                         self.__bicount[bigram_i][j] += 1
                         break
                 bigram_i = None
+            #set unicount
             for i in range(words_count):
                 if word == self.__words_no_repeat[i]:
                     self.__unicount[i] += 1
@@ -98,10 +105,40 @@ class BiGram:
             print self.__biprob_no_smoothing 
             #compute the total probability of the input sentence
             ###TODO:<s>,</s>
-            ###TODO:change to self.__words ,not self.__words_no_repeat
-            prob = 1;
-            for i in range(len(self.__biprob_no_smoothing)-1):
-                prob *= self.__biprob_no_smoothing[i][i+1]
+            prob = 1
+            for i in range(len(self.__words)-1):
+                for j in range(len(self.__words_no_repeat)):
+                    if self.__words[i] == self.__words_no_repeat[j]:
+                        break
+                for k in range(len(self.__words_no_repeat)):
+                    if self.__words[i+1] == self.__words_no_repeat[k]:
+                        break
+                print self.__words[i]
+                print self.__biprob_no_smoothing[j][k]
+                prob *= self.__biprob_no_smoothing[j][k]
+            print prob
+
+        #2.add-one smoothing
+        if self.__scenarios == '2':
+            for i in range(len(self.__biprob_add_one)) :
+                for j in range(len(self.__biprob_add_one)):
+                    #p* = (C(Wn-1Wn)+1)/(C(Wn-1)+V)
+                    self.__biprob_add_one[i][j] = (self.__biprob_add_one[i][j]+\
+                           1.0) / ( self.__unicount[i] + len(self.__vocabulary) )
+            print self.__biprob_add_one
+            #compute the total probability of the input sentence
+            ###TODO:<s>,</s>
+            prob = 1
+            for i in range(len(self.__words)-1):
+                for j in range(len(self.__words_no_repeat)):
+                    if self.__words[i] == self.__words_no_repeat[j]:
+                        break
+                for k in range(len(self.__words_no_repeat)):
+                    if self.__words[i+1] == self.__words_no_repeat[k]:
+                        break
+                print self.__words[i]
+                print self.__biprob_add_one[j][k]
+                prob *= self.__biprob_add_one[j][k]
             print prob
 
 if __name__ == '__main__':
