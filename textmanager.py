@@ -90,5 +90,4 @@ class TextManager :
               word = self.words[self.word_count]
               self.word_count += 1
               return word
-              #return '\n'
 

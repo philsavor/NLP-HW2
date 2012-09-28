@@ -7,7 +7,10 @@ import textmanager
 
 class BiGram:
     """
-       Represent a bigram to implement a bigram language model, which is trained       on Corpus.txt.The input of this program is a sentence and a scenarios,          which can be without smoothing ,with add-one smoothing and with Good-Tur-       ing discounting. The result is the probability of input sentence.
+       Represent a bigram to implement a bigram language model, which is trained
+       on Corpus.txt.The input of this program is a sentence and a scenarios, 
+       which can be without smoothing ,with add-one smoothing and with Good-Tur-ing
+       discounting. The result is the probability of input sentence.
     """
 
     def __init__(self,file_name):
