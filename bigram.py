@@ -1,3 +1,6 @@
+#!/usr/bin/python -B
+
+from __future__ import print_function
 import copy
 import re
 import textmanager
@@ -27,9 +30,32 @@ class BiGram:
         self.__tm = textmanager.TextManager()
         self.__tm.set_file(file_name)
 
-    def draw_table(self,  value):
+    def draw_table(self,  value, tag):
+        """
+           Used to draw a table. 
+           tag:0 for decimal, other for integer
+        """
+        #HEAD for table
+        print('' , end = ' ' * 12) 
+        for i in range(len(self.__words_no_repeat)):
+            char_num = len(self.__words_no_repeat[i])
+            #decimal
+            if tag == 0:
+                print(self.__words_no_repeat[i] , end = ' ' * (13 - char_num)) 
+            else:
+                print(self.__words_no_repeat[i] , end = ' ' * (10 - char_num)) 
+        print('')
+        #BODY for table
         for i in range(len(value)):
-                print( value[i])            
+            char_num = len(self.__words_no_repeat[i])
+            print(self.__words_no_repeat[i], end = ' '*(12 - char_num))
+            for j in range(len(value)):
+                #decimal
+                if tag == 0:
+                    print( "%.2e" % value[i][j],end=' ' * 5)            
+                else:
+                    print( "%04d" % value[i][j],end=' ' * 6)            
+            print('')
 
     def receive_sentences_scenarios(self):
         """
@@ -70,7 +96,7 @@ class BiGram:
                                         +"2.With add-one smoothing;\n"\
                                         +"3.With Good-Turing discounting.\n")
             if self.__scenarios not in ['0','1','2','3']:
-                print "\n\nThe valid input is 0,1,2,3\n"
+                print ("\n\nThe valid input is 0,1,2,3\n")
                 continue
             else:
                 break
@@ -138,9 +164,8 @@ class BiGram:
         self.__biprob_no_smoothing = copy.deepcopy(self.__bicount)
         self.__biprob_add_one = copy.deepcopy(self.__bicount)
         self.__biprob_good_turing = copy.deepcopy(self.__bicount)
-        #TODO
         print ("\n\nThe tables with the bigram counts is:\n")
-        self.draw_table(self.__bicount)
+        self.draw_table(self.__bicount, 1)
         print ("\n")
 
     def compute_probability(self):
@@ -157,9 +182,8 @@ class BiGram:
                         self.__biprob_no_smoothing[i][j] /= ( self.__unicount[i] * 1.0 )
                     else:
                         self.__biprob_no_smoothing[i][j] = 0
-            #TODO
             print("The table of bigram probabilites without smoothing is:\n")
-            self.draw_table( self.__biprob_no_smoothing )
+            self.draw_table( self.__biprob_no_smoothing ,0)
             print("\n")
             #compute the total probability of the input sentence
             prob = 1
@@ -182,8 +206,8 @@ class BiGram:
             if self.__unicount[i] != 0:
                 prob_word_s = self.__last_num * 1.0 / self.__unicount[i]
                 prob *= prob_word_s
-            print "The probabilty computed without smoothing is :"
-            print prob
+            print ("The probabilty computed without smoothing is :")
+            print ("%.2e" % prob)
             print("\n")
 
         #2.add-one smoothing
@@ -193,9 +217,8 @@ class BiGram:
                     #p* = (C(Wn-1Wn)+1)/(C(Wn-1)+V)
                     self.__biprob_add_one[i][j] = (self.__biprob_add_one[i][j]+\
                            1.0) / ( self.__unicount[i] + len(self.__vocabulary) )
-            #TODO
             print("The table of bigram probabilites with add-one smoothing is:\n")
-            self.draw_table( self.__biprob_add_one)
+            self.draw_table( self.__biprob_add_one, 0)
             print("\n")
             #compute the total probability of the input sentence
             prob = 1
@@ -218,8 +241,8 @@ class BiGram:
             if self.__unicount[i] != 0:
                 prob_word_s = self.__last_num * 1.0 / self.__unicount[i]
                 prob *= prob_word_s
-            print "The probabilty computed with add-one smoothing is :"
-            print prob
+            print ("The probabilty computed with add-one smoothing is :")
+            print ("%.2e" % prob)
             print("\n")
 
         #3.Good-Turing Discounting
@@ -251,9 +274,8 @@ class BiGram:
                         c_star = (self.__bicount[i][j] + 1) * num_ncp1 / num_nc 
                         self.__biprob_good_turing[i][j] = c_star * 1.0 \
                                                        / self.__unicount[i] 
-            #TODO
             print("The table of bigram probabilites with Good-Turing discounting is:\n")
-            self.draw_table( self.__biprob_good_turing)
+            self.draw_table( self.__biprob_good_turing, 0)
             print("\n")
             #compute the total probability of the input sentence
             prob = 1
@@ -276,8 +298,8 @@ class BiGram:
             if self.__unicount[i] != 0:
                 prob_word_s = self.__last_num * 1.0 / self.__unicount[i]
                 prob *= prob_word_s
-            print "The probabilty computed with Good-Turing discounting is :"
-            print prob
+            print ("The probabilty computed with Good-Turing discounting is :")
+            print ("%.2e" % prob)
             print("\n")
 
 if __name__ == '__main__':
