@@ -73,7 +73,7 @@ class TextManager :
               self.line = self._get_next_line()
               if self.line == None:
                   return None
-              self.words = re.findall(r'\w+', self.line)
+              self.words = re.findall(r'\w+|\.', self.line)
               self.max_word_count = len(self.words)
          if self.word_count != self.max_word_count:
               word = self.words[self.word_count] 
@@ -83,7 +83,7 @@ class TextManager :
               self.line = self._get_next_line()
               if self.line == None:
                   return None 
-              self.words = re.findall(r'\w+', self.line)
+              self.words = re.findall(r'\w+|\.', self.line)
               #reset the max_wor_count & word_count value
               self.max_word_count = len(self.words)  
               self.word_count = 0

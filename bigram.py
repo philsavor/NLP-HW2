@@ -11,11 +11,14 @@ class BiGram:
         self.__words = None
         self.__words_no_repeat = None
         self.__scenarios = None
+        #useful data
         self.__unicount = []
         self.__bicount = []
         self.__vocabulary = []
         self.__nc = []
      	self.__nc_num = []
+        self.__capital_num = 0
+        self.__last_num = 0
         #bigram probability
         self.__biprob_no_smoothing = []
         self.__biprob_add_one = []
@@ -23,6 +26,17 @@ class BiGram:
         #set file
         self.__tm = textmanager.TextManager()
         self.__tm.set_file(file_name)
+
+    """
+    def draw_table(self, key , value):
+        key_string = ''
+        for i in range(len(key)):
+            key_string += key[i] + '  '
+        print key_string
+        for i in range(len(key)):
+            for j in range(len(key)):
+                print( value[i][j])            
+    """
 
     def receive_sentences_scenarios(self):
         """
@@ -34,6 +48,9 @@ class BiGram:
         sentence = raw_input("Please input the sentence:\n")
         self.__words = re.findall(r'\w+', sentence)
         self.__words_no_repeat = re.findall(r'\w+', sentence) 
+        #change word to lower case
+        for i in range(len(self.__words_no_repeat)):
+            self.__words_no_repeat[i] = self.__words_no_repeat[i].lower()
         #delete the repeat token
         words_counts = len(self.__words_no_repeat)
         for i in range(words_counts):
@@ -48,7 +65,7 @@ class BiGram:
                 del self.__words_no_repeat[count]
                 count -= 1
             count += 1
-		#set nc and nc_num
+	#set nc and nc_num
         count = len(self.__words_no_repeat)
         self.__nc     = [[] * count for i in xrange(count)]
         self.__nc_num = [[] * count for i in xrange(count)]
@@ -69,11 +86,27 @@ class BiGram:
         self.__bicount = [[0] * words_count for i in xrange(words_count)]
 
         bigram_i = None
+        last_word = 0
         while 1:
             word = self.__tm.get_next_word()
             #end mark
             if word == None:
                 break
+            #deal with the situation like 'word </s>'
+            if word == self.__words[-1]: 
+                last_word = 1
+            elif word == '.':
+                if last_word == 1:
+                    self.__last_num += 1           
+                    last_word = 0
+                continue
+            else:
+               last_word = 0
+            #get the number of capitalized word
+            if word == self.__words[0].title():
+                 self.__capital_num += 1
+            #change to lower case           
+            word = word.lower()
             #set vocabulary
             if word not in self.__vocabulary:
                 self.__vocabulary.append(word)
@@ -109,6 +142,8 @@ class BiGram:
         #test
         print self.__unicount
         print self.__bicount
+        print self.__capital_num
+        print self.__last_num
 
     def compute_probability(self):
         """
@@ -126,18 +161,28 @@ class BiGram:
                         self.__biprob_no_smoothing[i][j] = 0
             print self.__biprob_no_smoothing 
             #compute the total probability of the input sentence
-            ###TODO:<s>,</s>
             prob = 1
             for i in range(len(self.__words)-1):
                 for j in range(len(self.__words_no_repeat)):
-                    if self.__words[i] == self.__words_no_repeat[j]:
+                    if self.__words[i].lower() == self.__words_no_repeat[j]:
                         break
                 for k in range(len(self.__words_no_repeat)):
-                    if self.__words[i+1] == self.__words_no_repeat[k]:
+                    if self.__words[i+1].lower() == self.__words_no_repeat[k]:
                         break
                 print self.__words[i]
                 print self.__biprob_no_smoothing[j][k]
                 prob *= self.__biprob_no_smoothing[j][k]
+            # the probability of "<s> word"
+            if self.__unicount[0] != 0:
+                prob_s_word = self.__capital_num * 1.0 / self.__unicount[0]
+                prob *= prob_s_word
+            # the probability of "word </s>"
+            for i in range(len(self.__words_no_repeat)):
+                if self.__words[-1].lower() == self.__words_no_repeat[i]:
+                    break
+            if self.__unicount[i] != 0:
+                prob_word_s = self.__last_num * 1.0 / self.__unicount[i]
+                prob *= prob_word_s
             print prob
 
         #2.add-one smoothing
@@ -149,18 +194,28 @@ class BiGram:
                            1.0) / ( self.__unicount[i] + len(self.__vocabulary) )
             print self.__biprob_add_one
             #compute the total probability of the input sentence
-            ###TODO:<s>,</s>
             prob = 1
             for i in range(len(self.__words)-1):
                 for j in range(len(self.__words_no_repeat)):
-                    if self.__words[i] == self.__words_no_repeat[j]:
+                    if self.__words[i].lower() == self.__words_no_repeat[j]:
                         break
                 for k in range(len(self.__words_no_repeat)):
-                    if self.__words[i+1] == self.__words_no_repeat[k]:
+                    if self.__words[i+1].lower() == self.__words_no_repeat[k]:
                         break
                 print self.__words[i]
                 print self.__biprob_add_one[j][k]
                 prob *= self.__biprob_add_one[j][k]
+            # the probability of "<s> word"
+            if self.__unicount[0] != 0:
+                prob_s_word = self.__capital_num * 1.0 / self.__unicount[0]
+                prob *= prob_s_word
+            # the probability of "word </s>"
+            for i in range(len(self.__words_no_repeat)):
+                if self.__words[-1].lower() == self.__words_no_repeat[i]:
+                    break
+            if self.__unicount[i] != 0:
+                prob_word_s = self.__last_num * 1.0 / self.__unicount[i]
+                prob *= prob_word_s
             print prob
 
         #3.Good-Turing Discounting
@@ -194,18 +249,28 @@ class BiGram:
                                                        / self.__unicount[i] 
             print self.__biprob_good_turing
             #compute the total probability of the input sentence
-            ###TODO:<s>,</s>
             prob = 1
             for i in range(len(self.__words)-1):
                 for j in range(len(self.__words_no_repeat)):
-                    if self.__words[i] == self.__words_no_repeat[j]:
+                    if self.__words[i].lower() == self.__words_no_repeat[j]:
                         break
                 for k in range(len(self.__words_no_repeat)):
-                    if self.__words[i+1] == self.__words_no_repeat[k]:
+                    if self.__words[i+1].lower() == self.__words_no_repeat[k]:
                         break
                 print self.__words[i]
                 print self.__biprob_good_turing[j][k]
                 prob *= self.__biprob_good_turing[j][k]
+            # the probability of "<s> word"
+            if self.__unicount[0] != 0:
+                prob_s_word = self.__capital_num * 1.0 / self.__unicount[0]
+                prob *= prob_s_word
+            # the probability of "word </s>"
+            for i in range(len(self.__words_no_repeat)):
+                if self.__words[-1].lower() == self.__words_no_repeat[i]:
+                    break
+            if self.__unicount[i] != 0:
+                prob_word_s = self.__last_num * 1.0 / self.__unicount[i]
+                prob *= prob_word_s
             print prob
 
 if __name__ == '__main__':
